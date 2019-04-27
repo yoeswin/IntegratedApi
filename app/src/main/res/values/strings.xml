@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">IntegratedApi</string>
+    <string name="facebook_app_id">586103101896878</string>
+    <string name="fb_login_protocol_scheme">fb586103101896878</string>
+    <string name="name">Name</string>
+    <string name="emailtest">test@mail.xyz</string>
+    <string name="com.twitter.sdk.android.CONSUMER_KEY">cmznRS6VcVBq3QX7zyhAsW5AT </string>
+    <string name="com.twitter.sdk.android.CONSUMER_SECRET">gD9iXQD1h7KDPnrIX9Hy6xI5RiVDGDmEBUcFHJFZLCBM3pgEB2 </string>
+    <string name="log_out">log-out</string>
+    <string name="dob">DOB</string>
+</resources>
