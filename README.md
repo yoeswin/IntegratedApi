@@ -3,6 +3,9 @@
 
 This app uses facebook google and twitter api.Here we can login through facebook or google or twitter account and this app gets the basic details such as name email id from the parent account 
 
+
+
+DEMO ::  [video](https://bit.ly/2vpgyYv)
 ***screenshot::***&nbsp;
 <p float="left">
   <img src="demo/Screenshot_1.png" width="205" height="401">
