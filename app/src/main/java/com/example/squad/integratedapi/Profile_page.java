@@ -1,6 +1,9 @@
 package com.example.squad.integratedapi;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -12,6 +15,12 @@ import com.facebook.AccessToken;
 import com.facebook.GraphRequest;
 import com.facebook.GraphResponse;
 import com.facebook.login.LoginManager;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.squareup.picasso.Picasso;
 import com.twitter.sdk.android.core.Callback;
 import com.twitter.sdk.android.core.Result;
@@ -24,13 +33,13 @@ import com.twitter.sdk.android.core.models.User;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import jp.wasabeef.blurry.Blurry;
 import retrofit2.Call;
 
 public class Profile_page extends AppCompatActivity {
     String first_name, last_name;
-    TextView Name, DOB, emaill, gender, place;
+    TextView Name, DOB, emaill, place;
     ImageView im;
+    GoogleSignInClient mGoogleSignInClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,19 +50,30 @@ public class Profile_page extends AppCompatActivity {
         Name = findViewById(R.id.name);
         DOB = findViewById(R.id.DOB);
         emaill = findViewById(R.id.email);
-        gender = findViewById(R.id.gender);
         place = findViewById(R.id.place);
+
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestEmail()
+                .build();
+        mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
+
+        GoogleSignInAccount acct = GoogleSignIn.getLastSignedInAccount(this);
+        if (acct != null) {
+            getGoogleUserProfile(acct);
+        }
 
 
         AccessToken accessToken = AccessToken.getCurrentAccessToken();
-        boolean isLoggedIn = accessToken == null;
-        if (!isLoggedIn) {
-//            Toast.makeText(Profile_page.this, Profile.getCurrentProfile().getProfilePictureUri(200, 200).toString(), Toast.LENGTH_SHORT).show();
+        boolean isLoggedIn = accessToken != null;
+        if (isLoggedIn) {
+            //get facebook details
             getUserProfile(AccessToken.getCurrentAccessToken());
         }
 
         TwitterSession session = TwitterCore.getInstance().getSessionManager().getActiveSession();
-        if (session != null) {
+        boolean twitterLoggedIn = session != null;
+        if (twitterLoggedIn) {
+            //get twitter details
             twitter();
         }
 
@@ -78,7 +98,7 @@ public class Profile_page extends AppCompatActivity {
                 ///load image using Picasso
                 Picasso.with(Profile_page.this)
                         .load(imageProfileUrl)
-                        .placeholder(R.mipmap.ic_launcher_round)
+                        .placeholder(R.drawable.ic_person_black_24dp)
                         .into(im);
 
             }
@@ -91,6 +111,20 @@ public class Profile_page extends AppCompatActivity {
 
     }
 
+
+    public void getGoogleUserProfile(GoogleSignInAccount acct){
+        String personName = acct.getDisplayName();
+        String personEmail = acct.getEmail();
+        Uri personPhoto = acct.getPhotoUrl();
+        Name.setText(personName);
+        emaill.setText(personEmail);
+//            Toast.makeText(this,personPhoto.toString(),Toast.LENGTH_SHORT).show();
+        Picasso.with(Profile_page.this)
+                .load(personPhoto)
+                .placeholder(R.drawable.ic_person_black_24dp)
+                .into(im);
+
+    }
 
     private void getUserProfile(AccessToken currentAccessToken) {
         GraphRequest request = GraphRequest.newMeRequest(
@@ -105,7 +139,8 @@ public class Profile_page extends AppCompatActivity {
                                 Name.setText(first_name);
                                 if (object.has("last_name")) {
                                     last_name = object.getString("last_name");
-                                    Name.setText(first_name + " " + last_name);
+                                    String temp = first_name + " " + last_name;
+                                    Name.setText(temp);
                                 }
                             }
                             if (object.has("email")) {
@@ -114,18 +149,15 @@ public class Profile_page extends AppCompatActivity {
                             if (object.has("birthday")) {
                                 DOB.setText(object.getString("birthday"));
                             }
-                            if (object.has("gender")) {
-                                gender.setText(object.getString("gender"));
-                            }
-                            if (object.has("hometown"))
-                                place.setText(object.getString("hometown"));
+                            if (object.has("location"))
+                                place.setText(object.getString("location"));
                             String id = object.getString("id");
                             String image_url = "https://graph.facebook.com/" + id + "/picture?height=500&width=500";
 
                             ///load image using Picasso
                             Picasso.with(Profile_page.this)
                                     .load(image_url)
-                                    .placeholder(R.mipmap.ic_launcher_round)
+                                    .placeholder(R.drawable.ic_person_black_24dp)
                                     .into(im);
 
                         } catch (JSONException e) {
@@ -136,7 +168,7 @@ public class Profile_page extends AppCompatActivity {
                 });
 
         Bundle parameters = new Bundle();
-        parameters.putString("fields", "first_name,last_name,email,birthday ,gender , hometown");
+        parameters.putString("fields", "first_name ,last_name ,email ,birthday ,location");
         request.setParameters(parameters);
         request.executeAsync();
 
@@ -149,6 +181,17 @@ public class Profile_page extends AppCompatActivity {
         if (TwitterCore.getInstance().getSessionManager().getActiveSession() != null) {
             TwitterCore.getInstance().getSessionManager().clearActiveSession();
         }
+
+        if (GoogleSignIn.getLastSignedInAccount(this) != null) {
+            mGoogleSignInClient.signOut()
+                    .addOnCompleteListener(this, new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            // ...
+                        }
+                    });
+        }
+        startActivity(new Intent(Profile_page.this, MainActivity.class));
         finish();
         Toast.makeText(getApplicationContext(), "Successfully logged out", Toast.LENGTH_SHORT).show();
     }
