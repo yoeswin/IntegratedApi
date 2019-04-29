@@ -5,7 +5,9 @@ This app uses facebook google and twitter api.Here we can login through facebook
 
 
 
-DEMO ::  [video](https://bit.ly/2vpgyYv)
+DEMO ::  [video demo](https://bit.ly/2vpgyYv)&nbsp;
+
+
 ***screenshot::***&nbsp;
 <p float="left">
   <img src="demo/Screenshot_1.png" width="205" height="401">
